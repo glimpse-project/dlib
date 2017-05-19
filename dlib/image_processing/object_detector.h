@@ -8,6 +8,7 @@
 #include <vector>
 #include "box_overlap_testing.h"
 #include "full_object_detection.h"
+#include "../timing.h"
 
 namespace dlib
 {
@@ -436,11 +437,17 @@ namespace dlib
         double adjust_threshold
     ) 
     {
+        dlib::timing::timer load_timer("scanner.load(image)");
         scanner.load(img);
+        load_timer.end();
+
         std::vector<std::pair<double, rectangle> > dets;
         std::vector<rect_detection> dets_accum;
+
+        dlib::timing::timer scanner_timer("all scanner detection");
         for (unsigned long i = 0; i < w.size(); ++i)
         {
+            dlib::timing::timer scanner_timer("scanning for single gradient vector");
             const double thresh = w[i].w(scanner.get_num_dimensions());
             scanner.detect(w[i].get_detect_argument(), dets, thresh + adjust_threshold);
             for (unsigned long j = 0; j < dets.size(); ++j)
@@ -452,11 +459,15 @@ namespace dlib
                 dets_accum.push_back(temp);
             }
         }
+        scanner_timer.end();
 
+        dlib::timing::timer non_max_suppression_timer("non-max suppression");
         // Do non-max suppression
         final_dets.clear();
-        if (w.size() > 1)
+        if (w.size() > 1) {
+            dlib::timing::timer non_max_suppression_timer("sorting detected rectangles");
             std::sort(dets_accum.rbegin(), dets_accum.rend());
+        }
         for (unsigned long i = 0; i < dets_accum.size(); ++i)
         {
             if (overlaps_any_box(final_dets, dets_accum[i].rect))
@@ -464,6 +475,7 @@ namespace dlib
 
             final_dets.push_back(dets_accum[i]);
         }
+        non_max_suppression_timer.end();
     }
 
 // ----------------------------------------------------------------------------------------

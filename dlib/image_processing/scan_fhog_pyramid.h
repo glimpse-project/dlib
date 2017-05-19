@@ -9,6 +9,7 @@
 #include "../array.h"
 #include "../array2d.h"
 #include "object_detector.h"
+#include "../timing.h"
 
 namespace dlib
 {
@@ -188,6 +189,8 @@ namespace dlib
             const double thresh
         ) const
         {
+            dlib::timing::timer fhog_scanner_detect_timer("fhog scanner timer");
+
             // make sure requires clause is not broken
             DLIB_ASSERT(is_loaded_with_image() &&
                         w.size() >= get_num_dimensions(), 
@@ -237,6 +240,8 @@ namespace dlib
             const feature_vector_type& weights 
         ) const
         {
+            dlib::timing::timer filterbank_build_timer("building filterbank");
+
             // make sure requires clause is not broken
             DLIB_ASSERT(weights.size() >= get_num_dimensions(),
                 "\t fhog_filterbank scan_fhog_pyramid::build_fhog_filterbank()"
@@ -573,6 +578,7 @@ namespace dlib
         )
         {
             unsigned long levels = 0;
+            dlib::timing::timer create_pyramid_timer("create_fhog_pyramid");
             rectangle rect = get_rect(img);
 
             // figure out how many pyramid levels we should be using based on the image size
@@ -606,6 +612,7 @@ namespace dlib
 
                 for (unsigned long i = 2; i < feats.size(); ++i)
                 {
+                    dlib::timing::timer create_pyramid_timer("pyramid downsample + feature extract");
                     pyr(temp2, temp1);
                     fe(temp1, feats[i], cell_size,filter_rows_padding,filter_cols_padding);
                     swap(temp1,temp2);
@@ -837,6 +844,8 @@ namespace dlib
         const double thresh
     ) const
     {
+        dlib::timing::timer fhog_scanner_detect("fhog filterbank scanner detect");
+
         // make sure requires clause is not broken
         DLIB_ASSERT(is_loaded_with_image() &&
                     w.get_num_dimensions() == get_num_dimensions(), 
@@ -1268,6 +1277,8 @@ namespace dlib
                 min_pyramid_layer_height, max_pyramid_levels);
         }
 
+        dlib::timing::timer evaluation_timer("evaluating detectors");
+
         std::vector<std::pair<double, rectangle> > temp_dets;
         for (unsigned long i = 0; i < detectors.size(); ++i)
         {
@@ -1304,6 +1315,10 @@ namespace dlib
             }
         }
 
+        evaluation_timer.end();
+
+
+        dlib::timing::timer suppression_timer("non-max suppression");
 
         // Do non-max suppression
         if (detectors.size() > 1)
@@ -1316,6 +1331,8 @@ namespace dlib
 
             dets.push_back(dets_accum[i]);
         }
+
+        suppression_timer.end();
     }
 
 // ----------------------------------------------------------------------------------------
