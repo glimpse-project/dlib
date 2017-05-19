@@ -205,6 +205,12 @@ namespace dlib
         }
 
         test_box_overlap boxes_overlap;
+
+        /* Public for the convenience of being able to deserialize the
+         * tested frontal_face_detector but then .resize() w if we can't
+         * afford to test for all the trained HOGs
+         */
+    public:
         std::vector<processed_weight_vector<image_scanner_type> > w;
         image_scanner_type scanner;
     };
