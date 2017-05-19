@@ -12,6 +12,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#ifdef __linux__
+#include <time.h>
+#endif
 
 namespace dlib
 {
@@ -73,6 +76,11 @@ namespace dlib
     get_timestamp (
     ) const
     {
+#ifdef __linux__
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return ((uint64_t)ts.tv_nsec / 1000ULL) + (uint64_t)ts.tv_sec * 1000000ULL;
+#else
         uint64 ts;
         timeval curtime;
         gettimeofday(&curtime,0);       
@@ -81,6 +89,7 @@ namespace dlib
         ts *= 1000000;
         ts += curtime.tv_usec;
         return ts;
+#endif
     }
 
 // ----------------------------------------------------------------------------------------
