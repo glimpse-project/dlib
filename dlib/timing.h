@@ -9,6 +9,11 @@
 
 #include <iostream>
 
+#include <stdio.h>
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 // ----------------------------------------------------------------------------------------
 
 /*!A timing
@@ -186,6 +191,83 @@ namespace dlib
             block(int i, const char* str):idx(i) {start(idx,str);}
             ~block() { stop(idx); }
             const int idx;
+        };
+
+        inline uint64_t get_time(void)
+        {
+#ifdef __linux__
+            struct timespec ts;
+            clock_gettime(CLOCK_MONOTONIC, &ts);
+
+            return ((uint64_t)ts.tv_sec) * 1000000000ULL + (uint64_t)ts.tv_nsec;
+#else
+#error "missing timing::get_time() implementation for platform"
+#endif
+        }
+
+        struct timer
+        {
+            timer() { start_ = get_time(); }
+            timer(const char *name)
+            {
+                start_ = get_time();
+                name_ = name;
+            }
+
+            void end()
+            {
+                end_ = get_time();
+
+                uint64_t duration = end_ - start_;
+#ifdef ANDROID
+                __android_log_print(ANDROID_LOG_INFO, "DLib", "Timer: %s took %.3f%s",
+                                    name_,
+                                    get_duration_ns_print_scale(duration),
+                                    get_duration_ns_print_scale_suffix(duration));
+#else
+                fprintf(stderr, "Timer: %s took %.3f%s\n",
+                        name_,
+                        get_duration_ns_print_scale(duration),
+                        get_duration_ns_print_scale_suffix(duration));
+#endif
+            }
+
+            ~timer()
+            {
+                if (!end_)
+                    end();
+            }
+
+            private:
+                uint64_t start_;
+                uint64_t end_ = 0;
+                const char *name_ = { "" };
+
+                const char *
+                get_duration_ns_print_scale_suffix(uint64_t duration_ns)
+                {
+                    if (duration_ns > 1000000000)
+                        return "s";
+                    else if (duration_ns > 1000000)
+                        return "ms";
+                    else if (duration_ns > 1000)
+                        return "us";
+                    else
+                        return "ns";
+                }
+
+                float
+                get_duration_ns_print_scale(uint64_t duration_ns)
+                {
+                    if (duration_ns > 1000000000)
+                        return duration_ns / 1e9;
+                    else if (duration_ns > 1000000)
+                        return duration_ns / 1e6;
+                    else if (duration_ns > 1000)
+                        return duration_ns / 1e3;
+                    else
+                        return duration_ns;
+                }
         };
     }
 }
