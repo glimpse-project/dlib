@@ -9,6 +9,7 @@
 #include "box_overlap_testing.h"
 #include "full_object_detection.h"
 #include "../timing.h"
+#include "../wrapper_image.h"
 
 namespace dlib
 {
@@ -125,7 +126,9 @@ namespace dlib
             >
         std::vector<rectangle> operator() (
             const image_type& img,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         template <
@@ -134,7 +137,9 @@ namespace dlib
         void operator() (
             const image_type& img,
             std::vector<std::pair<double, rectangle> >& final_dets,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         template <
@@ -143,7 +148,9 @@ namespace dlib
         void operator() (
             const image_type& img,
             std::vector<std::pair<double, full_object_detection> >& final_dets,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         template <
@@ -152,7 +159,9 @@ namespace dlib
         void operator() (
             const image_type& img,
             std::vector<full_object_detection>& final_dets,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         // These typedefs are here for backwards compatibility with previous versions of
@@ -166,7 +175,9 @@ namespace dlib
         void operator() (
             const image_type& img,
             std::vector<rect_detection>& final_dets,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         template <
@@ -175,7 +186,9 @@ namespace dlib
         void operator() (
             const image_type& img,
             std::vector<full_detection>& final_dets,
-            double adjust_threshold = 0
+            double adjust_threshold = 0,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         template <typename T>
@@ -434,11 +447,12 @@ namespace dlib
     operator() (
         const image_type& img,
         std::vector<rect_detection>& final_dets,
-        double adjust_threshold
-    ) 
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
+    )
     {
         dlib::timing::timer load_timer("scanner.load(image)");
-        scanner.load(img);
+        scanner.load(img, pyr_levels_1_n);
         load_timer.end();
 
         std::vector<std::pair<double, rectangle> > dets;
@@ -490,11 +504,12 @@ namespace dlib
     operator() (
         const image_type& img,
         std::vector<full_detection>& final_dets,
-        double adjust_threshold 
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     )
     {
         std::vector<rect_detection> dets;
-        (*this)(img,dets,adjust_threshold);
+        (*this)(img,dets,adjust_threshold, pyr_levels_1_n);
 
         final_dets.resize(dets.size());
 
@@ -518,11 +533,12 @@ namespace dlib
     std::vector<rectangle> object_detector<image_scanner_type>::
     operator() (
         const image_type& img,
-        double adjust_threshold
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     ) 
     {
         std::vector<rect_detection> dets;
-        (*this)(img,dets,adjust_threshold);
+        (*this)(img,dets,adjust_threshold, pyr_levels_1_n);
 
         std::vector<rectangle> final_dets(dets.size());
         for (unsigned long i = 0; i < dets.size(); ++i)
@@ -543,11 +559,12 @@ namespace dlib
     operator() (
         const image_type& img,
         std::vector<std::pair<double, rectangle> >& final_dets,
-        double adjust_threshold
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     ) 
     {
         std::vector<rect_detection> dets;
-        (*this)(img,dets,adjust_threshold);
+        (*this)(img,dets,adjust_threshold, pyr_levels_1_n);
 
         final_dets.resize(dets.size());
         for (unsigned long i = 0; i < dets.size(); ++i)
@@ -566,11 +583,12 @@ namespace dlib
     operator() (
         const image_type& img,
         std::vector<std::pair<double, full_object_detection> >& final_dets,
-        double adjust_threshold
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     ) 
     {
         std::vector<rect_detection> dets;
-        (*this)(img,dets,adjust_threshold);
+        (*this)(img,dets,adjust_threshold, pyr_levels_1_n);
 
         final_dets.clear();
         final_dets.reserve(dets.size());
@@ -595,11 +613,12 @@ namespace dlib
     operator() (
         const image_type& img,
         std::vector<full_object_detection>& final_dets,
-        double adjust_threshold
+        double adjust_threshold,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     ) 
     {
         std::vector<rect_detection> dets;
-        (*this)(img,dets,adjust_threshold);
+        (*this)(img,dets,adjust_threshold, pyr_levels_1_n);
 
         final_dets.clear();
         final_dets.reserve(dets.size());

@@ -696,7 +696,6 @@ namespace dlib
         }
 
     // ------------------------------------------------------------------------------------
-
         template <
             typename image_type, 
             typename out_type

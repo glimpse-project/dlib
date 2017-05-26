@@ -10,6 +10,7 @@
 #include "../array2d.h"
 #include "object_detector.h"
 #include "../timing.h"
+#include "../wrapper_image.h"
 
 namespace dlib
 {
@@ -90,7 +91,9 @@ namespace dlib
             typename image_type
             >
         void load (
-            const image_type& img
+            const image_type& img,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         inline bool is_loaded_with_image (
@@ -565,7 +568,7 @@ namespace dlib
             typename image_type,
             typename feature_extractor_type
             >
-        void create_fhog_pyramid (
+        void create_fhog_pyramid_with_buffers (
             const image_type& img,
             const feature_extractor_type& fe,
             array<array<array2d<float> > >& feats,
@@ -574,12 +577,17 @@ namespace dlib
             int filter_cols_padding,
             unsigned long min_pyramid_layer_width,
             unsigned long min_pyramid_layer_height,
-            unsigned long max_pyramid_levels
+            unsigned long max_pyramid_levels,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
         )
         {
             unsigned long levels = 0;
             dlib::timing::timer create_pyramid_timer("create_fhog_pyramid");
             rectangle rect = get_rect(img);
+            typedef typename image_traits<image_type>::pixel_type pixel_type;
+
+
+            __android_log_print(ANDROID_LOG_INFO, "DLib", "create_fhog_pyramid, cell_size = %d", cell_size);
 
             // figure out how many pyramid levels we should be using based on the image size
             pyramid_type pyr;
@@ -605,9 +613,20 @@ namespace dlib
                 "Invalid feature extractor used with dlib::scan_fhog_pyramid.  The output does not have the \n"
                 "indicated number of planes.");
 
-            if (feats.size() > 1)
-            {
-                typedef typename image_traits<image_type>::pixel_type pixel_type;
+            if (pyr_levels_1_n.size() == (feats.size() - 1)) {
+                rectangle rect = get_rect(img);
+                for (unsigned i = 0; i < (feats.size() - 1); i++) {
+                    rect = pyr.rect_down(rect);
+                    dlib::wrapped_image<pixel_type> &wrapped_img = pyr_levels_1_n[i];
+
+                    {
+                        dlib::timing::timer feature_extract_timer("feature extract, level with pre-downscaled pyramid level");
+                        fe(wrapped_img, feats[i], cell_size,filter_rows_padding,filter_cols_padding);
+                    }
+                }
+            } else if (feats.size() > 1) {
+                __android_log_print(ANDROID_LOG_INFO, "Dlib", "unable to use pyr_buffers (pyr_bufs_size=%d, feats.size=%d",
+                                    (int)pyr_levels_1_n.size(), (int)feats.size());
                 array2d<pixel_type> temp1, temp2;
 
                 {
@@ -634,6 +653,34 @@ namespace dlib
                 }
             }
         }
+
+        template <
+            typename pyramid_type,
+            typename image_type,
+            typename feature_extractor_type
+            >
+        void create_fhog_pyramid (
+            const image_type& img,
+            const feature_extractor_type& fe,
+            array<array<array2d<float> > >& feats,
+            int cell_size,
+            int filter_rows_padding,
+            int filter_cols_padding,
+            unsigned long min_pyramid_layer_width,
+            unsigned long min_pyramid_layer_height,
+            unsigned long max_pyramid_levels
+        )
+        {
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> levels(0);
+
+            create_fhog_pyramid_with_buffers<pyramid_type>(img, fe, feats, cell_size,
+                                                           filter_rows_padding,
+                                                           filter_cols_padding,
+                                                           min_pyramid_layer_width,
+                                                           min_pyramid_layer_height,
+                                                           max_pyramid_levels,
+                                                           levels);
+        }
     }
 
 // ----------------------------------------------------------------------------------------
@@ -647,14 +694,16 @@ namespace dlib
         >
     void scan_fhog_pyramid<Pyramid_type,feature_extractor_type>::
     load (
-        const image_type& img
+        const image_type& img,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     )
     {
         unsigned long width, height;
         compute_fhog_window_size(width,height);
-        impl::create_fhog_pyramid<Pyramid_type>(img, fe, feats, cell_size, height,
+        impl::create_fhog_pyramid_with_buffers<Pyramid_type>(img, fe, feats, cell_size, height,
             width, min_pyramid_layer_width, min_pyramid_layer_height,
-            max_pyramid_levels);
+            max_pyramid_levels,
+            pyr_levels_1_n);
     }
 
 // ----------------------------------------------------------------------------------------
