@@ -513,6 +513,8 @@ namespace dlib
                 << "\n\t filter_cols_padding: " << filter_cols_padding 
                 );
 
+            __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features_cell_size_1");
+
             /*
                 This function is an optimized version of impl_extract_fhog_features() for
                 the case where cell_size == 1.
@@ -707,6 +709,8 @@ namespace dlib
             int filter_cols_padding
         ) 
         {
+            __android_log_print(ANDROID_LOG_INFO, "DLib", "impl_extract_fhog_features");
+
             const_image_view<image_type> img(img_);
             // make sure requires clause is not broken
             DLIB_ASSERT( cell_size > 0 &&
@@ -758,6 +762,7 @@ namespace dlib
 
             if (cell_size == 1)
             {
+                dlib::timing::timer extract_features_cells_1x("1x cell feature extraction");
                 impl_extract_fhog_features_cell_size_1(img_,hog,filter_rows_padding,filter_cols_padding);
                 return;
             }
@@ -790,6 +795,7 @@ namespace dlib
             // edge) so we can avoid needing to do boundary checks when indexing into it
             // later on.  So some statements assign to the boundary but those values are
             // never used.
+            dlib::timing::timer clear_hist("cleared histogram");
             array2d<matrix<float,18,1> > hist(cells_nr+2, cells_nc+2);
             for (long r = 0; r < hist.nr(); ++r)
             {
@@ -798,6 +804,7 @@ namespace dlib
                     hist[r][c] = 0;
                 }
             }
+            clear_hist.end();
 
             array2d<float> norm(cells_nr, cells_nc);
             assign_all_pixels(norm, 0);
@@ -817,6 +824,7 @@ namespace dlib
             const int visible_nr = std::min((long)cells_nr*cell_size,img.nr())-1;
             const int visible_nc = std::min((long)cells_nc*cell_size,img.nc())-1;
 
+            dlib::timing::timer build_hist_timer("build orientation histograms");
             // First populate the gradient histograms
             for (int y = 1; y < visible_nr; y++) 
             {
@@ -954,7 +962,9 @@ namespace dlib
                     hist[iyp+1+1][ixp+1+1](best_o) += vy0*vx0*v;
                 }
             }
+            build_hist_timer.end();
 
+            dlib::timing::timer compute_cell_energies("computing cell energies");
             // compute energy in each block by summing over orientations
             for (int r = 0; r < cells_nr; ++r)
             {
@@ -966,7 +976,9 @@ namespace dlib
                     }
                 }
             }
+            compute_cell_energies.end();
 
+            dlib::timing::timer compute_features_timer("computing features");
             const float eps = 0.0001;
             // compute features
             for (int y = 0; y < hog_nr; y++) 
@@ -1043,6 +1055,7 @@ namespace dlib
                     set_hog(hog,30,xx,yy, temp[3]);
                 }
             }
+            compute_features_timer.end();
         }
 
     // ------------------------------------------------------------------------------------
@@ -1088,6 +1101,7 @@ namespace dlib
         int filter_cols_padding = 1
     ) 
     {
+        __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features 0");
         impl_fhog::impl_extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
         // If the image is too small then the above function outputs an empty feature map.
         // But to make things very uniform in usage we require the output to still have the
@@ -1109,6 +1123,7 @@ namespace dlib
         int filter_cols_padding = 1
     ) 
     {
+        __android_log_print(ANDROID_LOG_INFO, "Dlib", "extract_fhog_features 1");
         impl_fhog::impl_extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
     }
 
@@ -1127,6 +1142,7 @@ namespace dlib
     )
     {
         dlib::array<array2d<T> > hog;
+        __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features 2");
         extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
         feats.set_size(hog.size()*hog[0].size());
         for (unsigned long i = 0; i < hog.size(); ++i)

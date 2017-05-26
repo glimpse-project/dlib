@@ -596,8 +596,11 @@ namespace dlib
 
 
 
+            dlib::timing::timer feature_extract0_timer("feature extract level zero");
             // build our feature pyramid
             fe(img, feats[0], cell_size,filter_rows_padding,filter_cols_padding);
+            feature_extract0_timer.end();
+
             DLIB_ASSERT(feats[0].size() == fe.get_num_planes(), 
                 "Invalid feature extractor used with dlib::scan_fhog_pyramid.  The output does not have the \n"
                 "indicated number of planes.");
@@ -606,15 +609,27 @@ namespace dlib
             {
                 typedef typename image_traits<image_type>::pixel_type pixel_type;
                 array2d<pixel_type> temp1, temp2;
-                pyr(img, temp1);
-                fe(temp1, feats[1], cell_size,filter_rows_padding,filter_cols_padding);
+
+                {
+                    dlib::timing::timer downsample_timer("pyramid downsample, level 1");
+                    pyr(img, temp1);
+                }
+                {
+                    dlib::timing::timer feature_extract_timer("feature extract, level 1");
+                    fe(temp1, feats[1], cell_size,filter_rows_padding,filter_cols_padding);
+                }
                 swap(temp1,temp2);
 
                 for (unsigned long i = 2; i < feats.size(); ++i)
                 {
-                    dlib::timing::timer create_pyramid_timer("pyramid downsample + feature extract");
-                    pyr(temp2, temp1);
-                    fe(temp1, feats[i], cell_size,filter_rows_padding,filter_cols_padding);
+                    {
+                        dlib::timing::timer downsample_timer("pyramid downsample");
+                        pyr(temp2, temp1);
+                    }
+                    {
+                        dlib::timing::timer feature_extract_timer("feature extract");
+                        fe(temp1, feats[i], cell_size,filter_rows_padding,filter_cols_padding);
+                    }
                     swap(temp1,temp2);
                 }
             }

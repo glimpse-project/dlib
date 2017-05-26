@@ -154,7 +154,10 @@ namespace dlib
             int cell_size,
             int filter_rows_padding,
             int filter_cols_padding
-        ) const { extract_fhog_features(img,hog,cell_size,filter_rows_padding,filter_cols_padding); }
+        ) const {
+            __android_log_print(ANDROID_LOG_INFO, "DLib", "default_fhog_feature_extractor () operator");
+            extract_fhog_features(img,hog,cell_size,filter_rows_padding,filter_cols_padding);
+        }
         /*!
             requires
                 - image_type == is an implementation of array2d/array2d_kernel_abstract.h
