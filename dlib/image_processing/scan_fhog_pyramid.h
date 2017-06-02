@@ -11,6 +11,7 @@
 #include "object_detector.h"
 #include "../timing.h"
 #include "../wrapper_image.h"
+#include "../print.h"
 
 namespace dlib
 {
@@ -587,7 +588,7 @@ namespace dlib
             typedef typename image_traits<image_type>::pixel_type pixel_type;
 
 
-            __android_log_print(ANDROID_LOG_INFO, "DLib", "create_fhog_pyramid, cell_size = %d", cell_size);
+            DLIB_PRINT("create_fhog_pyramid, cell_size = %d", cell_size);
 
             // figure out how many pyramid levels we should be using based on the image size
             pyramid_type pyr;
@@ -625,7 +626,7 @@ namespace dlib
                     }
                 }
             } else if (feats.size() > 1) {
-                __android_log_print(ANDROID_LOG_INFO, "Dlib", "unable to use pyr_buffers (pyr_bufs_size=%d, feats.size=%d",
+                DLIB_PRINT("unable to use pyr_buffers (pyr_bufs_size=%d, feats.size=%d",
                                     (int)pyr_levels_1_n.size(), (int)feats.size());
                 array2d<pixel_type> temp1, temp2;
 

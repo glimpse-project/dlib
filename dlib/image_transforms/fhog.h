@@ -12,6 +12,8 @@
 #include "draw.h"
 #include "interpolation.h"
 #include "../simd.h"
+#include "../print.h"
+
 
 namespace dlib
 {
@@ -513,7 +515,7 @@ namespace dlib
                 << "\n\t filter_cols_padding: " << filter_cols_padding 
                 );
 
-            __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features_cell_size_1");
+            DLIB_PRINT("extract_fhog_features_cell_size_1");
 
             /*
                 This function is an optimized version of impl_extract_fhog_features() for
@@ -708,7 +710,7 @@ namespace dlib
             int filter_cols_padding
         ) 
         {
-            __android_log_print(ANDROID_LOG_INFO, "DLib", "impl_extract_fhog_features");
+            DLIB_PRINT("impl_extract_fhog_features");
 
             const_image_view<image_type> img(img_);
             // make sure requires clause is not broken
@@ -1100,7 +1102,7 @@ namespace dlib
         int filter_cols_padding = 1
     ) 
     {
-        __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features 0");
+        DLIB_PRINT("extract_fhog_features 0");
         impl_fhog::impl_extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
         // If the image is too small then the above function outputs an empty feature map.
         // But to make things very uniform in usage we require the output to still have the
@@ -1122,7 +1124,7 @@ namespace dlib
         int filter_cols_padding = 1
     ) 
     {
-        __android_log_print(ANDROID_LOG_INFO, "Dlib", "extract_fhog_features 1");
+        DLIB_PRINT("extract_fhog_features 1");
         impl_fhog::impl_extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
     }
 
@@ -1141,7 +1143,7 @@ namespace dlib
     )
     {
         dlib::array<array2d<T> > hog;
-        __android_log_print(ANDROID_LOG_INFO, "DLib", "extract_fhog_features 2");
+        DLIB_PRINT("extract_fhog_features 2");
         extract_fhog_features(img, hog, cell_size, filter_rows_padding, filter_cols_padding);
         feats.set_size(hog.size()*hog[0].size());
         for (unsigned long i = 0; i < hog.size(); ++i)

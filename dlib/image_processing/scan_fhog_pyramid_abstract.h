@@ -155,7 +155,7 @@ namespace dlib
             int filter_rows_padding,
             int filter_cols_padding
         ) const {
-            __android_log_print(ANDROID_LOG_INFO, "DLib", "default_fhog_feature_extractor () operator");
+            DLIB_PRINT("default_fhog_feature_extractor () operator");
             extract_fhog_features(img,hog,cell_size,filter_rows_padding,filter_cols_padding);
         }
         /*!
