@@ -10,9 +10,8 @@
 #include <iostream>
 
 #include <stdio.h>
-#ifdef ANDROID
-#include <android/log.h>
-#endif
+
+#include "print.h"
 
 // ----------------------------------------------------------------------------------------
 
@@ -219,17 +218,10 @@ namespace dlib
                 end_ = get_time();
 
                 uint64_t duration = end_ - start_;
-#ifdef ANDROID
-                __android_log_print(ANDROID_LOG_INFO, "DLib", "Timer: %s took %.3f%s",
-                                    name_,
-                                    get_duration_ns_print_scale(duration),
-                                    get_duration_ns_print_scale_suffix(duration));
-#else
-                fprintf(stderr, "Timer: %s took %.3f%s\n",
-                        name_,
-                        get_duration_ns_print_scale(duration),
-                        get_duration_ns_print_scale_suffix(duration));
-#endif
+                DLIB_PRINT("Timer: %s took %.3f%s",
+                           name_,
+                           get_duration_ns_print_scale(duration),
+                           get_duration_ns_print_scale_suffix(duration));
             }
 
             ~timer()
