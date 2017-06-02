@@ -11,6 +11,7 @@
 #include <vector>
 #include "full_object_detection.h"
 #include "../image_processing/generic_image.h"
+#include "../wrapper_image.h"
 
 namespace dlib
 {
@@ -38,7 +39,9 @@ namespace dlib
             typename image_type
             >
         void load (
-            const image_type& img
+            const image_type& img,
+            std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n =
+                std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>>()
         );
 
         inline bool is_loaded_with_image (
@@ -312,7 +315,8 @@ namespace dlib
         >
     void scan_image_pyramid<Pyramid_type,Feature_extractor_type>::
     load (
-        const image_type& img
+        const image_type& img,
+        std::vector<dlib::wrapped_image<typename image_traits<image_type>::pixel_type>> pyr_levels_1_n
     )
     {
         unsigned long levels = 0;
