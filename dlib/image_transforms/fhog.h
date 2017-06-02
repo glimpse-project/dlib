@@ -13,6 +13,7 @@
 #include "interpolation.h"
 #include "../simd.h"
 #include "../print.h"
+#include "../timing.h"
 
 
 namespace dlib
