@@ -1,0 +1,24 @@
+option('support_libpng', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support libpng dependant features')
+option('support_libgif', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support libgif dependant features')
+option('support_libjpeg', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support libjpeg dependant features')
+option('support_gui', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support GUI features')
+
+option('use_cblas', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support BLAS features')
+option('use_lapack', type: 'combo',
+       choices: [ 'yes', 'no', 'auto' ], value: 'auto',
+       description: 'Whether to support LAPACK features')
+
+option('enable_asserts', type: 'boolean', value: true,
+       description: 'Whether to enable DLIB_ASSERT checks')
+option('enable_stack_traces', type: 'boolean', value: true,
+       description: 'Whether to enable DLIB_STACK_TRACE macros')
