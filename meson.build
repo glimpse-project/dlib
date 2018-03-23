@@ -7,7 +7,7 @@ deps = []
 
 deps += dependency('threads')
 
-#compiler = meson.get_compiler('c')
+compiler = meson.get_compiler('c')
 #deps += compiler.find_library('m', required : false)
 
 if get_option('support_libpng') == 'yes'
@@ -81,10 +81,18 @@ if get_option('enable_stack_traces')
     defines += [ '-DDLIB_ENABLE_ASSERTS' ]
 endif
 
-lib = shared_library('dlib', [ 'dlib/all/source.cpp' ],
-                     version: '19.7.0',
-                     cpp_args: defines,
-                     dependencies: deps)
+# We have to special case Android because it doesn't support library versioning
+# XXX: it would be nicer if Meson handled this automatically
+#if compiler.get_define('__ANDROID__') != ''
+#    lib = library('dlib', [ 'dlib/all/source.cpp' ],
+#                  cpp_args: defines,
+#                  dependencies: deps)
+#else
+    lib = library('dlib', [ 'dlib/all/source.cpp' ],
+                  version: '19.7.0',
+                  cpp_args: defines,
+                  dependencies: deps)
+#endif
 inc = include_directories('.')
 dlib_dep = declare_dependency(link_with: lib,
                               include_directories: inc,

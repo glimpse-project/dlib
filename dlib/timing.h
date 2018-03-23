@@ -3,6 +3,7 @@
 #ifndef DLIB_TImING_Hh_
 #define DLIB_TImING_Hh_
 
+#include <sys/time.h>
 #include "misc_api.h"
 #include <cstring>
 #include "string.h"
@@ -200,7 +201,10 @@ namespace dlib
 
             return ((uint64_t)ts.tv_sec) * 1000000000ULL + (uint64_t)ts.tv_nsec;
 #else
-#error "missing timing::get_time() implementation for platform"
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+
+            return ((uint64_t)tv.tv_sec) * 1000000000ULL + (uint64_t)tv.tv_usec * 1000;
 #endif
         }
 
