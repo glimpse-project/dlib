@@ -228,7 +228,6 @@ namespace dlib
     static timer_global_clock_helper call_get_global_clock;
 
 // ----------------------------------------------------------------------------------------
-
 }
 
 #endif // DLIB_TIMER_cPPh_

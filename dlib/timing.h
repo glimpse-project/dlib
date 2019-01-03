@@ -3,7 +3,12 @@
 #ifndef DLIB_TImING_Hh_
 #define DLIB_TImING_Hh_
 
+#ifdef __unix__
 #include <sys/time.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "misc_api.h"
 #include <cstring>
 #include "string.h"
@@ -76,6 +81,8 @@
 
 namespace dlib
 {
+    extern double win32_qpc_scale;
+
     namespace timing
     {
         const int TIME_SLOTS = 500;
@@ -195,16 +202,26 @@ namespace dlib
 
         inline uint64_t get_time(void)
         {
-#ifdef __linux__
+#ifdef __unix__
             struct timespec ts;
             clock_gettime(CLOCK_MONOTONIC, &ts);
 
             return ((uint64_t)ts.tv_sec) * 1000000000ULL + (uint64_t)ts.tv_nsec;
-#else
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
+#elif defined(_WIN32)
+            // We'll end up with lots of qpc_scale copies but it seems like
+            // quite a hassle to give this a home given how dlib is basically a
+            // headers-only API...
+            static double qpc_scale = 0;
+            LARGE_INTEGER li;
 
-            return ((uint64_t)tv.tv_sec) * 1000000000ULL + (uint64_t)tv.tv_usec * 1000;
+            if (!qpc_scale) {
+                QueryPerformanceFrequency(&li);
+                qpc_scale = 1e9 / li.QuadPart;
+            }
+            QueryPerformanceCounter(&li);
+            return li.QuadPart * win32_qpc_scale;
+#else
+#error "missing timing::get_time() implementation for platform"
 #endif
         }
 

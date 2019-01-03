@@ -81,6 +81,13 @@ if get_option('enable_stack_traces')
     defines += [ '-DDLIB_ENABLE_ASSERTS' ]
 endif
 
+# It would be a nightmare to try and add dllexport annotations to dlib
+# so, practically, we can only build a static library on Windows...
+if host_machine.system() == 'windows'
+    lib = static_library('dlib', [ 'dlib/all/source.cpp' ],
+                         cpp_args: defines,
+                         dependencies: deps)
+else
 # We have to special case Android because it doesn't support library versioning
 # XXX: it would be nicer if Meson handled this automatically
 #if compiler.get_define('__ANDROID__') != ''
@@ -93,6 +100,7 @@ endif
                   cpp_args: defines,
                   dependencies: deps)
 #endif
+endif
 inc = include_directories('.')
 dlib_dep = declare_dependency(link_with: lib,
                               include_directories: inc,
