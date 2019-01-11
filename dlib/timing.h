@@ -3,7 +3,7 @@
 #ifndef DLIB_TImING_Hh_
 #define DLIB_TImING_Hh_
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
 #include <sys/time.h>
 #endif
 #ifdef _WIN32
@@ -202,7 +202,7 @@ namespace dlib
 
         inline uint64_t get_time(void)
         {
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
             struct timespec ts;
             clock_gettime(CLOCK_MONOTONIC, &ts);
 
